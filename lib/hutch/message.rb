@@ -12,11 +12,15 @@ module Hutch
       @body          = MultiJson.load(payload, symbolize_keys: true)
     end
 
+    def correlation_id
+      @properties[:correlation_id]
+    end
+
     def_delegator :@body, :[]
     def_delegators :@properties, :message_id, :timestamp
     def_delegators :@delivery_info, :routing_key, :exchange
 
-    attr_reader :body
+    attr_reader :body, :properties
 
     def to_s
       attrs = { :@body => body.to_s, message_id: message_id,

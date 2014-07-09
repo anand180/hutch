@@ -16,7 +16,7 @@ module Hutch
 
     def connect(options = {})
       set_up_amqp_connection
-      set_up_api_connection if options.fetch(:enable_http_api_use, true)
+      # set_up_api_connection if options.fetch(:enable_http_api_use, true)
 
       if block_given?
         yield
@@ -58,11 +58,16 @@ module Hutch
       sanitized_uri = "#{protocol}#{username}@#{host}:#{port}/#{vhost.sub(/^\//, '')}"
       logger.info "connecting to rabbitmq (#{sanitized_uri})"
 
-      @connection = Bunny.new(host: host, port: port, vhost: vhost,
-                              tls: tls, tls_key: tls_key, tls_cert: tls_cert,
-                              username: username, password: password,
-                              heartbeat: 30, automatically_recover: true,
-                              network_recovery_interval: 1)
+      if ENV['RABBITMQ_URL']
+        @connection = Bunny.new(ENV['RABBITMQ_URL'])
+        sanitized_uri = ENV['RABBITMQ_URL']
+      else
+        @connection = Bunny.new(host: host, port: port, vhost: vhost,
+                                tls: tls, tls_key: tls_key, tls_cert: tls_cert,
+                                username: username, password: password,
+                                heartbeat: 30, automatically_recover: true,
+                                network_recovery_interval: 1)
+      end
 
       with_bunny_connection_handler(sanitized_uri) do
         @connection.start
@@ -105,14 +110,7 @@ module Hutch
 
     # Return a mapping of queue names to the routing keys they're bound to.
     def bindings
-      results = Hash.new { |hash, key| hash[key] = [] }
-      @api_client.bindings.each do |binding|
-        next if binding['destination'] == binding['routing_key']
-        next unless binding['source'] == @config[:mq_exchange]
-        next unless binding['vhost'] == @config[:mq_vhost]
-        results[binding['destination']] << binding['routing_key']
-      end
-      results
+      {}
     end
 
     # Bind a queue to the broker's exchange on the routing keys provided. Any

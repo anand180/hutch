@@ -11,7 +11,7 @@ module Hutch
       @config = {
         mq_host: 'localhost',
         mq_port: 5672,
-        mq_exchange: 'hutch',  # TODO: should this be required?
+        mq_exchange: 'tuxedo',  # TODO: should this be required?
         mq_vhost: '/',
         mq_tls: false,
         mq_tls_cert: nil,
